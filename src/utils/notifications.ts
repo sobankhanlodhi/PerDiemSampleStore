@@ -19,26 +19,25 @@ export const scheduleStoreOpeningNotification = async (
 ): Promise<void> => {
   try {
     await notifee.cancelAllNotifications();
+    const nycTime = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+    );
 
-    // const nycTime = new Date(
-    //   new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
-    // );
+    const nextOpening = getNextStoreOpening(storeTimes, nycTime);
+    if (!nextOpening) {
+      console.log('No store opening found');
+      return;
+    }
 
-    // const nextOpening = getNextStoreOpening(storeTimes, nycTime);
-    // if (!nextOpening) {
-    //   console.log('No store opening found');
-    //   return;
-    // }
+    const notificationTime = new Date(nextOpening);
+    notificationTime.setHours(notificationTime.getHours() - 1);
 
-    // const notificationTime = new Date(nextOpening);
-    // notificationTime.setHours(notificationTime.getHours() - 1);
+    if (notificationTime <= new Date()) {
+      console.log('Notification time has already passed');
+      return;
+    }
 
-    // if (notificationTime <= new Date()) {
-    //   console.log('Notification time has already passed');
-    //   return;
-    // }
-
-    // const triggerTimestamp = Math.floor(notificationTime.getTime());
+    const triggerTimestamp = Math.floor(notificationTime.getTime());
 
     const channelId = await notifee.createChannel({
       id: 'store-opening',
@@ -49,7 +48,6 @@ export const scheduleStoreOpeningNotification = async (
     const tempNotificationTime = new Date(Date.now());
     tempNotificationTime.setSeconds(tempNotificationTime.getSeconds() + 10);
 
-    const tempTriggerTimestamp = tempNotificationTime.getTime();
 
 
     await notifee.createTriggerNotification(
@@ -69,17 +67,57 @@ export const scheduleStoreOpeningNotification = async (
       },
       {
         type: TriggerType.TIMESTAMP,
-        timestamp: tempTriggerTimestamp,
+        timestamp: triggerTimestamp,
       }
     );
 
-    // console.log('Notification scheduled for:', notificationTime.toISOString());
-    console.log('Notification scheduled for timestamp:', tempNotificationTime.toISOString());
+    console.log('Notification scheduled:', notificationTime.toISOString());
   } catch (error) {
     console.error('Error scheduling notification:', error);
   }
 };
 
+export const scheduleWelcomeNotification = async (): Promise<void> => {
+  try {
+    await notifee.cancelAllNotifications();
+
+    const channelId = await notifee.createChannel({
+      id: 'store-welcome',
+      name: 'Store Welcome',
+      importance: AndroidImportance.DEFAULT,
+    });
+
+    const tempNotificationTime = new Date(Date.now());
+    tempNotificationTime.setSeconds(tempNotificationTime.getSeconds() + 5);
+
+    const tempTriggerTimestamp = tempNotificationTime.getTime();
+
+    await notifee.createTriggerNotification(
+      {
+        title: 'Hi!',
+        body: 'Welcome to PerDiem Sample Store.',
+        android: {
+          channelId,
+          importance: AndroidImportance.DEFAULT,
+          pressAction: {
+            id: 'default',
+          },
+        },
+        ios: {
+          sound: 'default',
+        },
+      },
+      {
+        type: TriggerType.TIMESTAMP,
+        timestamp: tempTriggerTimestamp,
+      }
+    );
+
+    console.log('Welcome Notification scheduled timestamp:', tempNotificationTime.toISOString());
+  } catch (error) {
+    console.error('Error Welcome notification:', error);
+  }
+};
 
 export const cancelAllNotifications = async (): Promise<void> => {
   try {
@@ -94,6 +132,7 @@ export const initializeNotifications = async (storeTimes: any): Promise<void> =>
   const hasPermission = await requestNotificationPermissions();
   if (hasPermission && storeTimes) {
     await scheduleStoreOpeningNotification(storeTimes);
+    await scheduleWelcomeNotification();
   }
 };
 

@@ -17,6 +17,7 @@ Per Diem is a React Native application built with TypeScript that provides:
 ## ✨ Features
 
 ### Authentication
+
 - Email/password authentication using mock API endpoint
 - Google Sign-In integration with Firebase Authentication
 - Secure token storage with MMKV
@@ -24,23 +25,26 @@ Per Diem is a React Native application built with TypeScript that provides:
 - Logout functionality with cleanup
 
 ### Home Screen
+
 - **Timezone-Aware Greetings**: Dynamic greetings based on NYC time or local timezone
-  - 5:00-9:59 AM → "Good Morning, NYC!"
-  - 10:00-11:59 AM → "Late Morning Vibes, NYC!"
-  - 12:00-4:59 PM → "Good Afternoon, NYC!"
-  - 5:00-8:59 PM → "Good Evening, NYC!"
-  - 9:00 PM-4:59 AM → "Night Owl in NYC!"
+    - 5:00-9:59 AM → "Good Morning, NYC!"
+    - 10:00-11:59 AM → "Late Morning Vibes, NYC!"
+    - 12:00-4:59 PM → "Good Afternoon, NYC!"
+    - 5:00-8:59 PM → "Good Evening, NYC!"
+    - 9:00 PM-4:59 AM → "Night Owl in NYC!"
 - **Timezone Toggle**: Switch between NYC and local timezone with persistence
 - **Date List**: Next 30 days starting from today
 - **Time Slot Picker**: 15-minute interval slots with store status indicators
 - **Store Status**: Green (open) / Red (closed) indicators based on API data
 
 ### Push Notifications
+
 - Local notifications scheduled 1 hour before next store opening
 - Uses NYC timezone for calculation
 - Works even when app is closed
 
 ### Offline Support
+
 - Caches store times and overrides locally
 - Graceful degradation with offline banner
 - Automatic revalidation when connection is restored
@@ -84,11 +88,13 @@ src/
 ```
 
 ### State Management
+
 - **Context API**: Global authentication state
 - **Local State**: Component-level state with React hooks
 - **Persistent Storage**: MMKV for secure, fast key-value storage
 
 ### Data Flow
+
 1. User authenticates → Token stored in MMKV
 2. App verifies token on launch → Auto-login if valid
 3. Home screen loads store data → Cached locally
@@ -98,51 +104,55 @@ src/
 ## 🚀 Setup Instructions
 
 ### Prerequisites
+
 - Node.js >= 20
 - React Native CLI
 - Xcode (for iOS)
 - Android Studio (for Android)
-- CocoaPods (for iOS)
 
 ### Installation
 
 1. **Clone and install dependencies:**
+
    ```bash
    npm install
    ```
+1. **iOS - Install CocoaPods:**
 
-2. **iOS - Install CocoaPods:**
    ```bash
    cd ios
    bundle install
    bundle exec pod install
    cd ..
    ```
+1. **Environment Configuration:**
 
-3. **Environment Configuration:**
-   
    Create a `.env` file in the root directory:
+
    ```
    WEB_CLIENT_ID=your-google-web-client-id
    ```
+1. **Firebase Setup:**
 
-4. **Firebase Setup:**
    - Ensure `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) are configured
    - Configure Firebase Authentication with Google Sign-In enabled
 
 ### Running the App
 
 #### Start Metro Bundler
+
 ```bash
 npm start
 ```
 
 #### Run on iOS
+
 ```bash
 npm run ios
 ```
 
 #### Run on Android
+
 ```bash
 npm run android
 ```
@@ -150,11 +160,13 @@ npm run android
 ## 🧪 Testing
 
 ### Run Unit Tests
+
 ```bash
 npm test
 ```
 
 ### Test Coverage
+
 - `timeUtils.test.ts` - Time utility functions
 - `storeApi.test.ts` - Store API logic
 - `authContext.test.tsx` - Authentication context
@@ -162,33 +174,41 @@ npm test
 ## 📱 API Integration
 
 ### Authentication Endpoint
+
 - **POST** `/auth/`
-  - Basic Auth: `perdiem/perdiem`
-  - Body: `{ "email": string, "password": string }`
-  - Response: `{ "token": string, "email": string }`
+    - Basic Auth: `perdiem/perdiem`
+    - Body: `{ "email": string, "password": string }`
+    - Response: `{ "token": string, "email": string }`
 
 ### Token Verification
+
 - **GET** `/auth/verify`
-  - Authorization: `Bearer <token>`
+    - Authorization: `Bearer <token>`
 
 ### Store Times
+
 - **GET** `/store-times/`
-  - Returns weekly schedule with opening/closing hours
+    - Returns weekly schedule with opening/closing hours
 
 ### Store Overrides
-- **GET** `/store-overrides/date/{month}/{day}`
-  - Returns holiday/exception overrides for specific dates
+
+- **GET** `/store-overrides/`
+    - Returns holiday/exception overrides array
 
 ## 🔧 Configuration
 
 ### Base API URL
+
 Configured in `src/api/auth.ts` and `src/api/storeApi.ts`:
+
 ```typescript
 const API_BASE_URL = 'https://coding-challenge-pd-1a25b1a14f34.herokuapp.com';
 ```
 
 ### Timezone Preferences
+
 Stored in MMKV with key `timezone_preference`:
+
 - `'nyc'` - New York timezone (default)
 - `'local'` - Device local timezone
 
@@ -205,6 +225,7 @@ Stored in MMKV with key `timezone_preference`:
 ## 🎨 Design System
 
 ### Colors
+
 - Primary: `#2176FF`
 - Black: `#000000`
 - White: `#FFFFFF`
@@ -213,22 +234,16 @@ Stored in MMKV with key `timezone_preference`:
 - Dark Gray: `#333333`
 
 ### Spacing
+
 - xs: 4px
 - sm: 8px
 - md: 16px
 - lg: 24px
 - xl: 32px
 
-## 🔐 Security
-
-- **Token Storage**: Secure storage using MMKV (encrypted on iOS)
-- **Basic Auth**: Used for API authentication
-- **Token Verification**: Automatic validation on app launch
-- **Secure Credentials**: Never logged or exposed in code
-
 ## 🐛 Error Handling
 
-- Network errors gracefully handled with retry logic
+- Network errors gracefully handled
 - Offline mode with cached data fallback
 - User-friendly error messages
 - Toast notifications for success/error states
@@ -236,42 +251,28 @@ Stored in MMKV with key `timezone_preference`:
 ## 📝 Assumptions
 
 1. **API Response Format**: 
+
    - Authentication returns `token` field
    - Store times follow day-of-week structure (0-6)
    - Overrides are optional (404 is valid for no override)
+1. **Timezone Handling**:
 
-2. **Timezone Handling**:
    - NYC timezone is `America/New_York`
    - Store hours are calculated in NYC timezone
    - Notifications scheduled in device local time but calculated from NYC
+1. **Notifications**:
 
-3. **Notifications**:
    - Scheduled 1 hour before opening
    - Canceled on logout
    - Re-scheduled when store times change
+1. **Offline Behavior**:
 
-4. **Offline Behavior**:
    - Cached data used when offline
    - Banner displayed to inform user
-   - Auto-refresh when connection restored
+1. **Password Validation**:
 
-5. **Password Validation**:
-   - Minimum 4 characters (as per requirements)
-   - Placeholder shows "At least 8 characters" (UI design requirement)
-
-## 🚧 Future Enhancements
-
-- [ ] User profile management
-- [ ] Appointment booking functionality
-- [ ] Notification preferences
-- [ ] Dark mode support
-- [ ] Accessibility improvements
-- [ ] Performance optimizations
-- [ ] Additional test coverage
-
-## 📄 License
-
-This project is private and proprietary.
+   - Minimum 7 characters (as perdiem credentials)
+   - Placeholder shows "At least 8 characters" 
 
 ## 👥 Contributors
 
