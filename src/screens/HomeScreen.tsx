@@ -83,14 +83,10 @@ const HomeScreen: React.FC = () => {
         setStoreTimes(timesResult.data);
       }
 
-      const overrides: any = {};
-      for (const date of dates) {
-        const overrideResult = await fetchStoreOverrides(date.month, date.day, !isConnected);
-        if (overrideResult.success && overrideResult.data && Array.isArray(overrideResult.data)) {
-          overrides[`${date.month}-${date.day}`] = overrideResult.data;
-        }
+      const overrideResult = await fetchStoreOverrides(!isConnected);
+      if (overrideResult.success && overrideResult.data) {
+        setStoreOverrides(overrideResult.data);
       }
-      setStoreOverrides(overrides);
     } catch (error) {
       console.error('Error loading store data:', error);
     } finally {

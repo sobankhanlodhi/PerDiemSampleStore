@@ -56,23 +56,17 @@ export const fetchStoreTimes = async (useCache: boolean = true): Promise<any> =>
 
 
 export const fetchStoreOverrides = async (
-  month: number,
-  day: number,
   useCache: boolean = true
 ): Promise<any> => {
   if (useCache) {
-    const allOverrides = StorageHelper.getStoreOverrides();
-    if (allOverrides && allOverrides[`${month}-${day}`]) {
-      return {
-        success: true,
-        data: allOverrides[`${month}-${day}`],
-        cached: true,
-      };
+    const cached = StorageHelper.getStoreOverrides();
+    if (cached) {
+      return { success: true, data: cached, cached: true };
     }
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/store-overrides/date/${month}/${day}`, {
+    const response = await fetch(`${API_BASE_URL}/store-overrides/`, {
       method: 'GET',
       headers: {
         Authorization: getBasicAuthHeader(),
@@ -81,34 +75,35 @@ export const fetchStoreOverrides = async (
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return { success: true, data: [], cached: false };
-      }
       throw new Error(`Failed to fetch store overrides: ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    const allOverrides = StorageHelper.getStoreOverrides() || {};
-    allOverrides[`${month}-${day}`] = Array.isArray(data) ? data : [data];
+    const allOverrides: any = {};
+    if (Array.isArray(data)) {
+      data.forEach((override: any) => {
+        const key = `${override.month}-${override.day}`;
+        if (!allOverrides[key]) {
+          allOverrides[key] = [];
+        }
+        allOverrides[key].push(override);
+      });
+    }
+
     StorageHelper.setStoreOverrides(allOverrides);
 
-    return { success: true, data: Array.isArray(data) ? data : [data], cached: false };
+    return { success: true, data: allOverrides, cached: false };
   } catch (error: any) {
-    const allOverrides = StorageHelper.getStoreOverrides();
-    if (allOverrides && allOverrides[`${month}-${day}`]) {
-      return {
-        success: true,
-        data: allOverrides[`${month}-${day}`],
-        cached: true,
-        error: error.message,
-      };
+    const cached = StorageHelper.getStoreOverrides();
+    if (cached) {
+      return { success: true, data: cached, cached: true, error: error.message };
     }
 
     return {
       success: false,
       error: error.message || 'Failed to fetch store overrides',
-      data: [],
+      data: {},
     };
   }
 };
@@ -131,24 +126,27 @@ export const isStoreOpen = (
   const dayOfWeek = date.getDay();
 
   if (overrides && Array.isArray(overrides) && overrides.length > 0) {
-    const override = overrides.find(
-      (o: any) => o.month === month && o.day === day
-    );
-
-    if (override) {
-      if (override.is_open === false) {
-        return false;
-      }
-      if (override.start_time && override.end_time && override.is_open === true) {
-        return isTimeInRange(timeSlot, override.start_time, override.end_time);
-      }
+    for (const override of overrides) {
       if (override.is_open === true) {
-        return true;
+        if (override.start_time && override.end_time) {
+          if (isTimeInRange(timeSlot, override.start_time, override.end_time)) {
+            return true;
+          }
+        } else {
+          return true;
+        }
       }
+    }
+
+    const hasClosedOverride = overrides.some((o: any) => o.is_open === false);
+    if (hasClosedOverride) {
+      return false;
     }
   }
 
-  const schedules = storeTimes.filter((s: any) => s.day_of_week === dayOfWeek);
+  const schedules = storeTimes.filter(
+    (s: any) => s && s.day_of_week === dayOfWeek && s.hasOwnProperty('is_open')
+  );
 
   if (schedules.length === 0) {
     return false;
