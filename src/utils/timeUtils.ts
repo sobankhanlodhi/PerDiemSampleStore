@@ -85,6 +85,24 @@ export const formatTimeSlot = (timeSlot: string): string => {
   return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
 };
 
+export const getLocalCityName = (): string => {
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const parts = timezone.split('/');
+    if (parts.length > 1) {
+      const cityPart = parts[parts.length - 1];
+      const cityName = cityPart.replace(/_/g, ' ');
+      if (cityName === 'New York') {
+        return 'NYC';
+      }
+      return cityName;
+    }
+    return 'Local';
+  } catch (error) {
+    return 'Local';
+  }
+};
+
 
 export const getNextStoreOpening = (storeTimes: any, currentTime: Date): Date | null => {
   if (!storeTimes || !Array.isArray(storeTimes) || storeTimes.length === 0) return null;

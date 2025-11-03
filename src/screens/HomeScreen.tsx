@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { StorageHelper } from '../utils/storage';
-import { getGreeting, generateDateList } from '../utils/timeUtils';
+import { getGreeting, generateDateList, getLocalCityName } from '../utils/timeUtils';
 import { fetchStoreTimes, fetchStoreOverrides, isStoreOpen } from '../api/storeApi';
 import { COLORS, SPACING } from '../utils/constants';
 import OfflineBanner from '../components/OfflineBanner';
@@ -210,14 +210,14 @@ const HomeScreen: React.FC = () => {
         </View>
 
         <View style={styles.timezoneSection}>
-          <Text style={styles.timezoneLabel}>NYC Timezone</Text>
+          <Text style={styles.timezoneLabel}>NYC</Text>
           <Switch
             value={timezonePreference === 'local'}
             onValueChange={handleTimezoneToggle}
             trackColor={{ false: COLORS.lightGray, true: COLORS.primary }}
             thumbColor={COLORS.white}
           />
-          <Text style={styles.timezoneLabel}>Local Timezone</Text>
+          <Text style={styles.timezoneLabel}>{getLocalCityName()}</Text>
         </View>
 
         {selectedSlot && (
